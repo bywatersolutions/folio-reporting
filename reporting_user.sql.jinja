@@ -1,0 +1,11 @@
+
+-- Create a ROLE to access the {{ schema_name }} SCHEMA
+
+{% if pw != None %}
+CREATE ROLE {{ user }} LOGIN PASSWORD '{{ pw }}';
+{% endif %}
+GRANT USAGE ON SCHEMA {{ schema_name }} TO {{ user }};
+GRANT SELECT ON ALL TABLES IN SCHEMA {{ schema_name }} to {{ user }};
+
+-- seems to be necessary because of functions used within this schema --
+GRANT USAGE ON SCHEMA {{ tenantId }}_mod_inventory_storage to {{ user }};
