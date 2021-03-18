@@ -1,6 +1,9 @@
+-- Initialize the Schema --
 DROP SCHEMA IF EXISTS {{ schema_name }} CASCADE;
 CREATE SCHEMA {{ schema_name }};
 CREATE FUNCTION {{ schema_name }}.timestamp_cast(IN TEXT) RETURNS TIMESTAMP WITH TIME ZONE LANGUAGE PLPGSQL IMMUTABLE AS 'BEGIN RETURN $1::TIMESTAMP WITH TIME ZONE; EXCEPTION WHEN OTHERS THEN RETURN NULL; END';
+
+-- Begin creating the Views --
 CREATE VIEW {{ schema_name }}.acquisitions_units AS
 SELECT
 id AS id,
@@ -18,6 +21,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.acquisitions_unit;
+
 CREATE VIEW {{ schema_name }}.address_types AS
 SELECT
 id AS id,
@@ -31,12 +35,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.addresstype;
+
 CREATE VIEW {{ schema_name }}.alerts AS
 SELECT
 id AS id,
 jsonb->>'alert' AS alert,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.alert;
+
 CREATE VIEW {{ schema_name }}.alternative_title_types AS
 SELECT
 id AS id,
@@ -50,6 +56,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.alternative_title_type;
+
 CREATE VIEW {{ schema_name }}.auth_attempts AS
 SELECT
 id AS id,
@@ -58,6 +65,7 @@ CAST(jsonb->>'userId' AS UUID) AS user_id,
 CAST(jsonb->>'attemptCount' AS INTEGER) AS attempt_count,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_login.auth_attempts;
+
 CREATE VIEW {{ schema_name }}.auth_credentials_histories AS
 SELECT
 id AS id,
@@ -73,6 +81,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_login.auth_credentials_history;
+
 CREATE VIEW {{ schema_name }}.batch_groups AS
 SELECT
 id AS id,
@@ -86,12 +95,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.batch_groups;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_batched_voucher_batched_voucher_line_fund_codes AS
 SELECT
 id AS id,
 batch_voucher_batched_voucher_batched_voucher_line_id AS batch_voucher_batched_voucher_batched_voucher_line_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_batched_voucher_batched_voucher_line_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_batched_voucher_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.batch_vouchers, jsonb_array_elements((jsonb->>'batchedVouchers')::jsonb) WITH ORDINALITY) a, jsonb_array_elements((jsonb->>'batchedVoucherLines')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'fundCodes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_batched_voucher_batched_voucher_lines AS
 SELECT
 id AS id,
@@ -99,6 +110,7 @@ batch_voucher_batched_voucher_id AS batch_voucher_batched_voucher_id,
 CAST(jsonb->>'amount' AS DECIMAL(19,2)) AS amount,
 jsonb->>'externalAccountNumber' AS external_account_number
 FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_batched_voucher_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.batch_vouchers, jsonb_array_elements((jsonb->>'batchedVouchers')::jsonb) WITH ORDINALITY) a, jsonb_array_elements((jsonb->>'batchedVoucherLines')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_batched_vouchers AS
 SELECT
 id AS id,
@@ -121,6 +133,7 @@ jsonb->>'vendorName' AS vendor_name,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'voucherDate') AS voucher_date,
 jsonb->>'voucherNumber' AS voucher_number
 FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.batch_vouchers, jsonb_array_elements((jsonb->>'batchedVouchers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.batch_vouchers AS
 SELECT
 id AS id,
@@ -131,6 +144,7 @@ jsonb->>'batchGroup' AS batch_group,
 CAST(jsonb->>'totalRecords' AS INTEGER) AS total_records,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.batch_vouchers;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_exports AS
 SELECT
 id AS id,
@@ -148,12 +162,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.batch_voucher_exports;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_export_config_weekdays AS
 SELECT
 id AS id,
 batch_voucher_export_config_id AS batch_voucher_export_config_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS batch_voucher_export_config_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.batch_voucher_export_configs, jsonb_array_elements_text((jsonb->>'weekdays')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.batch_voucher_export_configs AS
 SELECT
 id AS id,
@@ -170,6 +186,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.batch_voucher_export_configs;
+
 CREATE VIEW {{ schema_name }}.blocks AS
 SELECT
 id AS id,
@@ -190,6 +207,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.manualblocks;
+
 CREATE VIEW {{ schema_name }}.block_conditions AS
 SELECT
 id AS id,
@@ -207,6 +225,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_patron_blocks.patron_block_conditions;
+
 CREATE VIEW {{ schema_name }}.block_limits AS
 SELECT
 id AS id,
@@ -222,18 +241,21 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content,
 conditionid AS conditionid
 FROM {{ tenantId }}_mod_patron_blocks.patron_block_limits;
+
 CREATE VIEW {{ schema_name }}.budget_acquisitions_units AS
 SELECT
 id AS id,
 budget_id AS budget_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS budget_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.budget, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.budget_tags AS
 SELECT
 id AS id,
 budget_id AS budget_id,
 CAST(jsonb AS UUID) AS tag_id
 FROM (SELECT id::text || ordinality::text AS id, id AS budget_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.budget, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.budgets AS
 SELECT
 id AS id,
@@ -260,6 +282,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.budget;
+
 CREATE VIEW {{ schema_name }}.budget_expense_classes AS
 SELECT
 id AS id,
@@ -268,6 +291,7 @@ CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 jsonb->>'status' AS status,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.budget_expense_class;
+
 CREATE VIEW {{ schema_name }}.call_number_types AS
 SELECT
 id AS id,
@@ -281,6 +305,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.call_number_type;
+
 CREATE VIEW {{ schema_name }}.campuses AS
 SELECT
 id AS id,
@@ -295,6 +320,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.loccampus;
+
 CREATE VIEW {{ schema_name }}.cancellation_reasons AS
 SELECT
 id AS id,
@@ -310,6 +336,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.cancellation_reason;
+
 CREATE VIEW {{ schema_name }}.categories AS
 SELECT
 id AS id,
@@ -322,6 +349,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_organizations_storage.categories;
+
 CREATE VIEW {{ schema_name }}.check_ins AS
 SELECT
 id AS id,
@@ -334,6 +362,7 @@ CAST(jsonb->>'servicePointId' AS UUID) AS service_point_id,
 CAST(jsonb->>'performedByUserId' AS UUID) AS performed_by_user_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.check_in;
+
 CREATE VIEW {{ schema_name }}.circulation_rules AS
 SELECT
 id AS id,
@@ -341,6 +370,7 @@ jsonb->>'rulesAsText' AS rules_as_text,
 jsonb_pretty(jsonb) AS content,
 lock AS lock
 FROM {{ tenantId }}_mod_circulation_storage.circulation_rules;
+
 CREATE VIEW {{ schema_name }}.classification_types AS
 SELECT
 id AS id,
@@ -354,6 +384,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.classification_type;
+
 CREATE VIEW {{ schema_name }}.close_reasons AS
 SELECT
 id AS id,
@@ -361,6 +392,7 @@ jsonb->>'reason' AS name,
 jsonb->>'source' AS source,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.reasons_for_closure;
+
 CREATE VIEW {{ schema_name }}.comments AS
 SELECT
 id AS id,
@@ -376,6 +408,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.comments;
+
 CREATE VIEW {{ schema_name }}.configurations AS
 SELECT
 id AS id,
@@ -395,12 +428,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_configuration.config_data;
+
 CREATE VIEW {{ schema_name }}.contact_phone_number_categories AS
 SELECT
 id AS id,
 contact_phone_number_id AS contact_phone_number_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_phone_number_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'phoneNumbers')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_phone_numbers AS
 SELECT
 id AS id,
@@ -417,12 +452,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'phoneNumbers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_email_categories AS
 SELECT
 id AS id,
 contact_email_id AS contact_email_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_email_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'emails')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_emails AS
 SELECT
 id AS id,
@@ -439,12 +476,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'emails')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_address_categories AS
 SELECT
 id AS id,
 contact_address_id AS contact_address_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_address_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'addresses')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_addresses AS
 SELECT
 id AS id,
@@ -465,12 +504,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'addresses')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_url_categories AS
 SELECT
 id AS id,
 contact_url_id AS contact_url_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_url_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'urls')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_urls AS
 SELECT
 id AS id,
@@ -488,12 +529,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements((jsonb->>'urls')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contact_categories AS
 SELECT
 id AS id,
 contact_id AS contact_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS contact_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.contacts, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contacts AS
 SELECT
 id AS id,
@@ -512,6 +555,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_organizations_storage.contacts;
+
 CREATE VIEW {{ schema_name }}.contributor_name_types AS
 SELECT
 id AS id,
@@ -525,6 +569,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.contributor_name_type;
+
 CREATE VIEW {{ schema_name }}.contributor_types AS
 SELECT
 id AS id,
@@ -538,6 +583,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.contributor_type;
+
 CREATE VIEW {{ schema_name }}.custom_field_values AS
 SELECT
 id AS id,
@@ -546,6 +592,7 @@ jsonb->>'id' AS id2,
 jsonb->>'value' AS value,
 CAST(jsonb->>'default' AS BOOLEAN) AS default
 FROM (SELECT id::text || ordinality::text AS id, id AS custom_field_id, value AS jsonb FROM {{ tenantId }}_mod_users.custom_fields, jsonb_array_elements((jsonb#>>'{selectField,options,values}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.custom_fields AS
 SELECT
 id AS id,
@@ -570,6 +617,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.custom_fields;
+
 CREATE VIEW {{ schema_name }}.departments AS
 SELECT
 id AS id,
@@ -584,6 +632,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.departments;
+
 CREATE VIEW {{ schema_name }}.documents AS
 SELECT
 id AS id,
@@ -607,6 +656,7 @@ jsonb_pretty(jsonb) AS content,
 invoiceid AS invoiceid,
 document_data AS document_data
 FROM {{ tenantId }}_mod_invoice_storage.documents;
+
 CREATE VIEW {{ schema_name }}.electronic_access_relationships AS
 SELECT
 id AS id,
@@ -619,12 +669,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.electronic_access_relationship;
+
 CREATE VIEW {{ schema_name }}.error_records AS
 SELECT
 id AS id,
 content AS content,
 description AS description
 FROM {{ tenantId }}_mod_source_record_storage.error_records_lb;
+
 CREATE VIEW {{ schema_name }}.event_logs AS
 SELECT
 id AS id,
@@ -641,6 +693,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_login.event_logs;
+
 CREATE VIEW {{ schema_name }}.expense_classes AS
 SELECT
 id AS id,
@@ -655,6 +708,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.expense_class;
+
 CREATE VIEW {{ schema_name }}.export_config_credentials AS
 SELECT
 id AS id,
@@ -669,6 +723,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.export_config_credentials;
+
 CREATE VIEW {{ schema_name }}.fees AS
 SELECT
 id AS id,
@@ -704,6 +759,7 @@ CAST(jsonb->>'holdingsRecordId' AS UUID) AS holding_id,
 CAST(jsonb->>'instanceId' AS UUID) AS instance_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.accounts;
+
 CREATE VIEW {{ schema_name }}.fee_types AS
 SELECT
 id AS id,
@@ -721,12 +777,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.feefines;
+
 CREATE VIEW {{ schema_name }}.finance_group_acquisitions_units AS
 SELECT
 id AS id,
 finance_group_id AS finance_group_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS finance_group_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.groups, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.finance_groups AS
 SELECT
 id AS id,
@@ -742,12 +800,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.groups;
+
 CREATE VIEW {{ schema_name }}.fiscal_year_acquisitions_units AS
 SELECT
 id AS id,
 fiscal_year_id AS fiscal_year_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS fiscal_year_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.fiscal_year, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.fiscal_years AS
 SELECT
 id AS id,
@@ -766,6 +826,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.fiscal_year;
+
 CREATE VIEW {{ schema_name }}.fixed_due_date_schedule_schedules AS
 SELECT
 id AS id,
@@ -774,6 +835,7 @@ fixed_due_date_schedule_id AS fixed_due_date_schedule_id,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'to') AS to,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'due') AS due
 FROM (SELECT id::text || ordinality::text AS id, id AS fixed_due_date_schedule_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.fixed_due_date_schedule, jsonb_array_elements((jsonb->>'schedules')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.fixed_due_date_schedules AS
 SELECT
 id AS id,
@@ -787,30 +849,35 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.fixed_due_date_schedule;
+
 CREATE VIEW {{ schema_name }}.allocated_from_funds AS
 SELECT
 id AS id,
 fund_id AS fund_id,
 CAST(jsonb AS UUID) AS from_fund_id
 FROM (SELECT id::text || ordinality::text AS id, id AS fund_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.fund, jsonb_array_elements_text((jsonb->>'allocatedFromIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.allocated_to_funds AS
 SELECT
 id AS id,
 fund_id AS fund_id,
 CAST(jsonb AS UUID) AS to_fund_id
 FROM (SELECT id::text || ordinality::text AS id, id AS fund_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.fund, jsonb_array_elements_text((jsonb->>'allocatedToIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.fund_acquisitions_units AS
 SELECT
 id AS id,
 fund_id AS fund_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS fund_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.fund, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.fund_tags AS
 SELECT
 id AS id,
 fund_id AS fund_id,
 CAST(jsonb AS UUID) AS tag_id
 FROM (SELECT id::text || ordinality::text AS id, id AS fund_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.fund, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.funds AS
 SELECT
 id AS id,
@@ -829,12 +896,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.fund;
+
 CREATE VIEW {{ schema_name }}.fund_types AS
 SELECT
 id AS id,
 jsonb->>'name' AS name,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.fund_type;
+
 CREATE VIEW {{ schema_name }}.groups AS
 SELECT
 id AS id,
@@ -849,6 +918,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.groups;
+
 CREATE VIEW {{ schema_name }}.group_fund_fiscal_years AS
 SELECT
 id AS id,
@@ -858,12 +928,14 @@ CAST(jsonb->>'fiscalYearId' AS UUID) AS fiscal_year_id,
 CAST(jsonb->>'fundId' AS UUID) AS fund_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.group_fund_fiscal_year;
+
 CREATE VIEW {{ schema_name }}.holding_former_ids AS
 SELECT
 id AS id,
 holding_id AS holding_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements_text((jsonb->>'formerIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holding_electronic_accesses AS
 SELECT
 id AS id,
@@ -874,6 +946,7 @@ jsonb->>'materialsSpecification' AS materials_specification,
 jsonb->>'publicNote' AS public_note,
 CAST(jsonb->>'relationshipId' AS UUID) AS relationship_id
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb->>'electronicAccess')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holding_notes AS
 SELECT
 id AS id,
@@ -882,6 +955,7 @@ CAST(jsonb->>'holdingsNoteTypeId' AS UUID) AS holding_note_type_id,
 jsonb->>'note' AS note,
 CAST(jsonb->>'staffOnly' AS BOOLEAN) AS staff_only
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb->>'notes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.extents AS
 SELECT
 id AS id,
@@ -890,6 +964,7 @@ jsonb->>'statement' AS statement,
 jsonb->>'note' AS note,
 jsonb->>'staffNote' AS staff_note
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb->>'holdingsStatements')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.index_statements AS
 SELECT
 id AS id,
@@ -898,6 +973,7 @@ jsonb->>'statement' AS statement,
 jsonb->>'note' AS note,
 jsonb->>'staffNote' AS staff_note
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb->>'holdingsStatementsForIndexes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.supplement_statements AS
 SELECT
 id AS id,
@@ -906,6 +982,7 @@ jsonb->>'statement' AS statement,
 jsonb->>'note' AS note,
 jsonb->>'staffNote' AS staff_note
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb->>'holdingsStatementsForSupplements')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holding_entries AS
 SELECT
 id AS id,
@@ -914,18 +991,21 @@ CAST(jsonb->>'publicDisplay' AS BOOLEAN) AS public_display,
 jsonb->>'enumeration' AS enumeration,
 jsonb->>'chronology' AS chronology
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements((jsonb#>>'{receivingHistory,entries}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holding_statistical_codes AS
 SELECT
 id AS id,
 holding_id AS holding_id,
 CAST(jsonb AS UUID) AS statistical_code_id
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements_text((jsonb->>'statisticalCodeIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holding_tags AS
 SELECT
 id AS id,
 holding_id AS holding_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS holding_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.holdings_record, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.holdings AS
 SELECT
 id AS id,
@@ -958,6 +1038,7 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 CAST(jsonb->>'sourceId' AS UUID) AS source_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.holdings_record;
+
 CREATE VIEW {{ schema_name }}.holding_note_types AS
 SELECT
 id AS id,
@@ -971,6 +1052,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.holdings_note_type;
+
 CREATE VIEW {{ schema_name }}.holding_types AS
 SELECT
 id AS id,
@@ -984,6 +1066,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.holdings_type;
+
 CREATE VIEW {{ schema_name }}.hrid_settings AS
 SELECT
 id AS id,
@@ -996,6 +1079,7 @@ CAST(jsonb#>>'{items,startNumber}' AS INTEGER) AS items_start_number,
 jsonb_pretty(jsonb) AS content,
 lock AS lock
 FROM {{ tenantId }}_mod_inventory_storage.hrid_settings;
+
 CREATE VIEW {{ schema_name }}.id_types AS
 SELECT
 id AS id,
@@ -1009,6 +1093,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.identifier_type;
+
 CREATE VIEW {{ schema_name }}.ill_policies AS
 SELECT
 id AS id,
@@ -1022,6 +1107,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.ill_policy;
+
 CREATE VIEW {{ schema_name }}.alternative_titles AS
 SELECT
 id AS id,
@@ -1029,18 +1115,21 @@ instance_id AS instance_id,
 CAST(jsonb->>'alternativeTitleTypeId' AS UUID) AS alternative_title_type_id,
 jsonb->>'alternativeTitle' AS alternative_title
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'alternativeTitles')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.editions AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'editions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.series AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'series')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.identifiers AS
 SELECT
 id AS id,
@@ -1048,6 +1137,7 @@ instance_id AS instance_id,
 jsonb->>'value' AS value,
 CAST(jsonb->>'identifierTypeId' AS UUID) AS identifier_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'identifiers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.contributors AS
 SELECT
 id AS id,
@@ -1058,12 +1148,14 @@ jsonb->>'contributorTypeText' AS contributor_type_text,
 CAST(jsonb->>'contributorNameTypeId' AS UUID) AS contributor_name_type_id,
 CAST(jsonb->>'primary' AS BOOLEAN) AS primary
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'contributors')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.subjects AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'subjects')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.classifications AS
 SELECT
 id AS id,
@@ -1071,6 +1163,7 @@ instance_id AS instance_id,
 jsonb->>'classificationNumber' AS classification_number,
 CAST(jsonb->>'classificationTypeId' AS UUID) AS classification_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'classifications')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.publications AS
 SELECT
 id AS id,
@@ -1080,18 +1173,21 @@ jsonb->>'place' AS place,
 jsonb->>'dateOfPublication' AS date_of_publication,
 jsonb->>'role' AS role
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'publication')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.publication_frequency AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'publicationFrequency')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.publication_range AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'publicationRange')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.electronic_accesses AS
 SELECT
 id AS id,
@@ -1102,24 +1198,28 @@ jsonb->>'materialsSpecification' AS materials_specification,
 jsonb->>'publicNote' AS public_note,
 CAST(jsonb->>'relationshipId' AS UUID) AS relationship_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'electronicAccess')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.instance_formats AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS UUID) AS format_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'instanceFormatIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.physical_descriptions AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'physicalDescriptions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.languages AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'languages')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.notes AS
 SELECT
 id AS id,
@@ -1128,24 +1228,28 @@ CAST(jsonb->>'instanceNoteTypeId' AS UUID) AS instance_note_type_id,
 jsonb->>'note' AS note,
 CAST(jsonb->>'staffOnly' AS BOOLEAN) AS staff_only
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements((jsonb->>'notes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.instance_statistical_codes AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS UUID) AS statistical_code_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'statisticalCodeIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.instance_tags AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.instance_nature_of_content_terms AS
 SELECT
 id AS id,
 instance_id AS instance_id,
 CAST(jsonb AS UUID) AS nature_of_content_term_id
 FROM (SELECT id::text || ordinality::text AS id, id AS instance_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance, jsonb_array_elements_text((jsonb->>'natureOfContentTermIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.instances AS
 SELECT
 id AS id,
@@ -1173,6 +1277,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance;
+
 CREATE VIEW {{ schema_name }}.formats AS
 SELECT
 id AS id,
@@ -1187,6 +1292,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_format;
+
 CREATE VIEW {{ schema_name }}.instance_note_types AS
 SELECT
 id AS id,
@@ -1200,6 +1306,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_note_type;
+
 CREATE VIEW {{ schema_name }}.relationships AS
 SELECT
 id AS id,
@@ -1214,6 +1321,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_relationship;
+
 CREATE VIEW {{ schema_name }}.relationship_types AS
 SELECT
 id AS id,
@@ -1226,18 +1334,21 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_relationship_type;
+
 CREATE VIEW {{ schema_name }}.source_marc_fields AS
 SELECT
 id AS id,
 source_marc_id AS source_marc_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS source_marc_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.instance_source_marc, jsonb_array_elements_text((jsonb->>'fields')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.source_marcs AS
 SELECT
 id AS id,
 CAST(jsonb->>'leader' AS VARCHAR(24)) AS leader,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_source_marc;
+
 CREATE VIEW {{ schema_name }}.statuses AS
 SELECT
 id AS id,
@@ -1252,6 +1363,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_status;
+
 CREATE VIEW {{ schema_name }}.instance_types AS
 SELECT
 id AS id,
@@ -1265,6 +1377,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.instance_type;
+
 CREATE VIEW {{ schema_name }}.institutions AS
 SELECT
 id AS id,
@@ -1278,12 +1391,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.locinstitution;
+
 CREATE VIEW {{ schema_name }}.interface_type AS
 SELECT
 id AS id,
 interface_id AS interface_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS interface_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.interfaces, jsonb_array_elements_text((jsonb->>'type')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.interfaces AS
 SELECT
 id AS id,
@@ -1304,6 +1419,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_organizations_storage.interfaces;
+
 CREATE VIEW {{ schema_name }}.interface_credentials AS
 SELECT
 id AS id,
@@ -1312,6 +1428,7 @@ jsonb->>'password' AS password,
 CAST(jsonb->>'interfaceId' AS UUID) AS interface_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_organizations_storage.interface_credentials;
+
 CREATE VIEW {{ schema_name }}.invoice_adjustment_fund_distributions AS
 SELECT
 id AS id,
@@ -1324,6 +1441,7 @@ jsonb->>'distributionType' AS distribution_type,
 CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_adjustment_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS invoice_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoices, jsonb_array_elements((jsonb->>'adjustments')::jsonb) WITH ORDINALITY) a, jsonb_array_elements((jsonb->>'fundDistributions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_adjustments AS
 SELECT
 id AS id,
@@ -1337,24 +1455,28 @@ jsonb->>'relationToTotal' AS relation_to_total,
 jsonb->>'type' AS type,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoices, jsonb_array_elements((jsonb->>'adjustments')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_order_numbers AS
 SELECT
 id AS id,
 invoice_id AS invoice_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoices, jsonb_array_elements_text((jsonb->>'poNumbers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_acquisitions_units AS
 SELECT
 id AS id,
 invoice_id AS invoice_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoices, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_tags AS
 SELECT
 id AS id,
 invoice_id AS invoice_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoices, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoices AS
 SELECT
 id AS id,
@@ -1395,6 +1517,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.invoices;
+
 CREATE VIEW {{ schema_name }}.invoice_item_adjustment_fund_distributions AS
 SELECT
 id AS id,
@@ -1407,6 +1530,7 @@ jsonb->>'distributionType' AS distribution_type,
 CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_item_adjustment_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS invoice_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoice_lines, jsonb_array_elements((jsonb->>'adjustments')::jsonb) WITH ORDINALITY) a, jsonb_array_elements((jsonb->>'fundDistributions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_item_adjustments AS
 SELECT
 id AS id,
@@ -1420,6 +1544,7 @@ jsonb->>'relationToTotal' AS relation_to_total,
 jsonb->>'type' AS type,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoice_lines, jsonb_array_elements((jsonb->>'adjustments')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_item_fund_distributions AS
 SELECT
 id AS id,
@@ -1431,12 +1556,14 @@ jsonb->>'distributionType' AS distribution_type,
 CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoice_lines, jsonb_array_elements((jsonb->>'fundDistributions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_item_tags AS
 SELECT
 id AS id,
 invoice_item_id AS invoice_item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS invoice_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.invoice_lines, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.invoice_items AS
 SELECT
 id AS id,
@@ -1467,6 +1594,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.invoice_lines;
+
 CREATE VIEW {{ schema_name }}.invoice_transaction_summaries AS
 SELECT
 id AS id,
@@ -1474,18 +1602,21 @@ CAST(jsonb->>'numPendingPayments' AS INTEGER) AS num_pending_payments,
 CAST(jsonb->>'numPaymentsCredits' AS INTEGER) AS num_payments_credits,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.invoice_transaction_summaries;
+
 CREATE VIEW {{ schema_name }}.item_former_ids AS
 SELECT
 id AS id,
 item_id AS item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements_text((jsonb->>'formerIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.item_year_caption AS
 SELECT
 id AS id,
 item_id AS item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements_text((jsonb->>'yearCaption')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.item_notes AS
 SELECT
 id AS id,
@@ -1494,6 +1625,7 @@ CAST(jsonb->>'itemNoteTypeId' AS UUID) AS item_note_type_id,
 jsonb->>'note' AS note,
 CAST(jsonb->>'staffOnly' AS BOOLEAN) AS staff_only
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements((jsonb->>'notes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.circulation_notes AS
 SELECT
 id AS id,
@@ -1507,6 +1639,7 @@ jsonb#>>'{source,personal,firstName}' AS source_personal_first_name,
 jsonb->>'date' AS date,
 CAST(jsonb->>'staffOnly' AS BOOLEAN) AS staff_only
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements((jsonb->>'circulationNotes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.item_electronic_accesses AS
 SELECT
 id AS id,
@@ -1517,18 +1650,21 @@ jsonb->>'materialsSpecification' AS materials_specification,
 jsonb->>'publicNote' AS public_note,
 CAST(jsonb->>'relationshipId' AS UUID) AS relationship_id
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements((jsonb->>'electronicAccess')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.item_statistical_codes AS
 SELECT
 id AS id,
 item_id AS item_id,
 CAST(jsonb AS UUID) AS statistical_code_id
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements_text((jsonb->>'statisticalCodeIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.item_tags AS
 SELECT
 id AS id,
 item_id AS item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS item_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.item, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.items AS
 SELECT
 id AS id,
@@ -1578,6 +1714,7 @@ CAST(jsonb#>>'{lastCheckIn,servicePointId}' AS UUID) AS last_check_in_service_po
 CAST(jsonb#>>'{lastCheckIn,staffMemberId}' AS UUID) AS last_check_in_staff_member_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.item;
+
 CREATE VIEW {{ schema_name }}.item_damaged_statuses AS
 SELECT
 id AS id,
@@ -1591,6 +1728,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.item_damaged_status;
+
 CREATE VIEW {{ schema_name }}.item_note_types AS
 SELECT
 id AS id,
@@ -1604,6 +1742,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.item_note_type;
+
 CREATE VIEW {{ schema_name }}.job_executions AS
 SELECT
 id AS id,
@@ -1631,6 +1770,7 @@ jsonb->>'errorStatus' AS error_status,
 CAST(jsonb->>'userId' AS UUID) AS user_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_source_record_manager.job_executions;
+
 CREATE VIEW {{ schema_name }}.job_execution_source_chunks AS
 SELECT
 id AS id,
@@ -1643,6 +1783,7 @@ CAST(jsonb->>'processedAmount' AS INTEGER) AS processed_amount,
 jsonb->>'error' AS error,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_source_record_manager.job_execution_source_chunks;
+
 CREATE VIEW {{ schema_name }}.journal_records AS
 SELECT
 id AS id,
@@ -1657,12 +1798,14 @@ action_date AS action_date,
 source_record_order AS source_record_order,
 error AS error
 FROM {{ tenantId }}_mod_source_record_manager.journal_records;
+
 CREATE VIEW {{ schema_name }}.ledger_acquisitions_units AS
 SELECT
 id AS id,
 ledger_id AS ledger_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS ledger_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.ledger, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.ledgers AS
 SELECT
 id AS id,
@@ -1686,6 +1829,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.ledger;
+
 CREATE VIEW {{ schema_name }}.libraries AS
 SELECT
 id AS id,
@@ -1700,6 +1844,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.loclibrary;
+
 CREATE VIEW {{ schema_name }}.loans AS
 SELECT
 id AS id,
@@ -1736,6 +1881,7 @@ CAST(jsonb#>>'{agedToLostDelayedBilling,lostItemHasBeenBilled}' AS BOOLEAN) AS a
 {{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{agedToLostDelayedBilling,agedToLostDate}') AS aged_to_lost_delayed_billing_aged_to_lost_date,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.loan;
+
 CREATE VIEW {{ schema_name }}.loan_policies AS
 SELECT
 id AS id,
@@ -1784,6 +1930,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.loan_policy;
+
 CREATE VIEW {{ schema_name }}.loan_types AS
 SELECT
 id AS id,
@@ -1796,12 +1943,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.loan_type;
+
 CREATE VIEW {{ schema_name }}.location_service_points AS
 SELECT
 id AS id,
 location_id AS location_id,
 CAST(jsonb AS UUID) AS service_point_id
 FROM (SELECT id::text || ordinality::text AS id, id AS location_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.location, jsonb_array_elements_text((jsonb->>'servicePointIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.locations AS
 SELECT
 id AS id,
@@ -1822,6 +1971,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.location;
+
 CREATE VIEW {{ schema_name }}.logins AS
 SELECT
 id AS id,
@@ -1836,6 +1986,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_login.auth_credentials;
+
 CREATE VIEW {{ schema_name }}.lost_item_fee_policies AS
 SELECT
 id AS id,
@@ -1867,11 +2018,13 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.lost_item_fee_policy;
+
 CREATE VIEW {{ schema_name }}.marc_records AS
 SELECT
 id AS id,
 jsonb_pretty(content) AS content
 FROM {{ tenantId }}_mod_source_record_storage.marc_records_lb;
+
 CREATE VIEW {{ schema_name }}.material_types AS
 SELECT
 id AS id,
@@ -1885,6 +2038,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.material_type;
+
 CREATE VIEW {{ schema_name }}.mode_of_issuances AS
 SELECT
 id AS id,
@@ -1898,6 +2052,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.mode_of_issuance;
+
 CREATE VIEW {{ schema_name }}.nature_of_content_terms AS
 SELECT
 id AS id,
@@ -1911,6 +2066,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.nature_of_content_term;
+
 CREATE VIEW {{ schema_name }}.note_links AS
 SELECT
 id AS id,
@@ -1918,6 +2074,7 @@ note_id AS note_id,
 jsonb->>'id' AS id2,
 jsonb->>'type' AS type
 FROM (SELECT id::text || ordinality::text AS id, id AS note_id, value AS jsonb FROM {{ tenantId }}_mod_notes.note_data, jsonb_array_elements((jsonb->>'links')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.notes2 AS
 SELECT
 id AS id,
@@ -1942,6 +2099,7 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content,
 temporary_type_id AS temporary_type_id
 FROM {{ tenantId }}_mod_notes.note_data;
+
 CREATE VIEW {{ schema_name }}.note_types AS
 SELECT
 id AS id,
@@ -1955,24 +2113,28 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_notes.note_type;
+
 CREATE VIEW {{ schema_name }}.order_notes AS
 SELECT
 id AS id,
 order_id AS order_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS order_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.purchase_order, jsonb_array_elements_text((jsonb->>'notes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_acquisitions_units AS
 SELECT
 id AS id,
 order_id AS order_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS order_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.purchase_order, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_tags AS
 SELECT
 id AS id,
 order_id AS order_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS order_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.purchase_order, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.orders AS
 SELECT
 id AS id,
@@ -2009,6 +2171,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.purchase_order;
+
 CREATE VIEW {{ schema_name }}.order_invoices AS
 SELECT
 id AS id,
@@ -2016,12 +2179,14 @@ CAST(jsonb->>'purchaseOrderId' AS UUID) AS order_id,
 CAST(jsonb->>'invoiceId' AS UUID) AS invoice_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.order_invoice_relationship;
+
 CREATE VIEW {{ schema_name }}.order_item_alerts AS
 SELECT
 id AS id,
 order_item_id AS order_item_id,
 CAST(jsonb AS UUID) AS alert_id
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements_text((jsonb->>'alerts')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_claims AS
 SELECT
 id AS id,
@@ -2030,6 +2195,7 @@ CAST(jsonb->>'claimed' AS BOOLEAN) AS claimed,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'sent') AS sent,
 CAST(jsonb->>'grace' AS INTEGER) AS grace
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements((jsonb->>'claims')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_contributors AS
 SELECT
 id AS id,
@@ -2037,6 +2203,7 @@ order_item_id AS order_item_id,
 jsonb->>'contributor' AS contributor,
 CAST(jsonb->>'contributorNameTypeId' AS UUID) AS contributor_name_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements((jsonb->>'contributors')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_product_ids AS
 SELECT
 id AS id,
@@ -2045,6 +2212,7 @@ jsonb->>'productId' AS product_id,
 CAST(jsonb->>'productIdType' AS UUID) AS product_id_type_id,
 jsonb->>'qualifier' AS qualifier
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements((jsonb#>>'{details,productIds}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_fund_distributions AS
 SELECT
 id AS id,
@@ -2056,6 +2224,7 @@ CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 jsonb->>'distributionType' AS distribution_type,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements((jsonb->>'fundDistribution')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_locations AS
 SELECT
 id AS id,
@@ -2065,24 +2234,28 @@ CAST(jsonb->>'quantity' AS INTEGER) AS quantity,
 CAST(jsonb->>'quantityElectronic' AS INTEGER) AS quantity_electronic,
 CAST(jsonb->>'quantityPhysical' AS INTEGER) AS quantity_physical
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements((jsonb->>'locations')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_volumes AS
 SELECT
 id AS id,
 order_item_id AS order_item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements_text((jsonb#>>'{physical,volumes}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_reporting_codes AS
 SELECT
 id AS id,
 order_item_id AS order_item_id,
 CAST(jsonb AS UUID) AS reporting_code_id
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements_text((jsonb->>'reportingCodes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_item_tags AS
 SELECT
 id AS id,
 order_item_id AS order_item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS order_item_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.po_line, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.order_items AS
 SELECT
 id AS id,
@@ -2155,6 +2328,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.po_line;
+
 CREATE VIEW {{ schema_name }}.order_templates AS
 SELECT
 id AS id,
@@ -2163,12 +2337,14 @@ jsonb->>'templateCode' AS template_code,
 jsonb->>'templateDescription' AS template_description,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.order_templates;
+
 CREATE VIEW {{ schema_name }}.order_transaction_summaries AS
 SELECT
 id AS id,
 CAST(jsonb->>'numTransactions' AS INTEGER) AS num_transactions,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.order_transaction_summaries;
+
 CREATE VIEW {{ schema_name }}.organization_aliases AS
 SELECT
 id AS id,
@@ -2176,12 +2352,14 @@ organization_id AS organization_id,
 jsonb->>'value' AS value,
 jsonb->>'description' AS description
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'aliases')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_address_categories AS
 SELECT
 id AS id,
 organization_address_id AS organization_address_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_address_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'addresses')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_addresses AS
 SELECT
 id AS id,
@@ -2202,12 +2380,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'addresses')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_phone_number_categories AS
 SELECT
 id AS id,
 organization_phone_number_id AS organization_phone_number_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_phone_number_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'phoneNumbers')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_phone_numbers AS
 SELECT
 id AS id,
@@ -2224,12 +2404,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'phoneNumbers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_email_categories AS
 SELECT
 id AS id,
 organization_email_id AS organization_email_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_email_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'emails')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_emails AS
 SELECT
 id AS id,
@@ -2246,12 +2428,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'emails')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_url_categories AS
 SELECT
 id AS id,
 organization_url_id AS organization_url_id,
 CAST(jsonb AS UUID) AS category_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_url_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'urls')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'categories')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_urls AS
 SELECT
 id AS id,
@@ -2269,12 +2453,14 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'urls')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_contacts AS
 SELECT
 id AS id,
 organization_id AS organization_id,
 CAST(jsonb AS UUID) AS contact_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements_text((jsonb->>'contacts')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_agreements AS
 SELECT
 id AS id,
@@ -2284,24 +2470,28 @@ CAST(jsonb->>'discount' AS DECIMAL(19,2)) AS discount,
 jsonb->>'referenceUrl' AS reference_url,
 jsonb->>'notes' AS notes
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'agreements')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.currencies AS
 SELECT
 id AS id,
 organization_id AS organization_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements_text((jsonb->>'vendorCurrencies')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_interfaces AS
 SELECT
 id AS id,
 organization_id AS organization_id,
 CAST(jsonb AS UUID) AS interface_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements_text((jsonb->>'interfaces')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_account_acquisitions_units AS
 SELECT
 id AS id,
 organization_account_id AS organization_account_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_account_id, value AS jsonb FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'accounts')::jsonb) WITH ORDINALITY) a, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_accounts AS
 SELECT
 id AS id,
@@ -2317,6 +2507,7 @@ jsonb->>'libraryCode' AS library_code,
 jsonb->>'libraryEdiCode' AS library_edi_code,
 jsonb->>'notes' AS notes
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'accounts')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_changelogs AS
 SELECT
 id AS id,
@@ -2324,18 +2515,21 @@ organization_id AS organization_id,
 jsonb->>'description' AS description,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'timestamp') AS timestamp
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements((jsonb->>'changelogs')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_acquisitions_units AS
 SELECT
 id AS id,
 organization_id AS organization_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organization_tags AS
 SELECT
 id AS id,
 organization_id AS organization_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS organization_id, value AS jsonb FROM {{ tenantId }}_mod_organizations_storage.organizations, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.organizations AS
 SELECT
 id AS id,
@@ -2407,6 +2601,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_organizations_storage.organizations;
+
 CREATE VIEW {{ schema_name }}.overdue_fine_policies AS
 SELECT
 id AS id,
@@ -2429,6 +2624,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.overdue_fine_policy;
+
 CREATE VIEW {{ schema_name }}.service_point_owners AS
 SELECT
 id AS id,
@@ -2436,6 +2632,7 @@ owner_id AS owner_id,
 jsonb->>'value' AS value,
 jsonb->>'label' AS label
 FROM (SELECT id::text || ordinality::text AS id, id AS owner_id, value AS jsonb FROM {{ tenantId }}_mod_feesfines.owners, jsonb_array_elements((jsonb->>'servicePointOwner')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.owners AS
 SELECT
 id AS id,
@@ -2451,6 +2648,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.owners;
+
 CREATE VIEW {{ schema_name }}.patron_action_sessions AS
 SELECT
 id AS id,
@@ -2465,6 +2663,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.patron_action_session;
+
 CREATE VIEW {{ schema_name }}.patron_notice_policy_loan_notices AS
 SELECT
 id AS id,
@@ -2482,6 +2681,7 @@ jsonb#>>'{sendOptions,sendBy,intervalId}' AS send_options_send_by_interval_id,
 CAST(jsonb#>>'{sendOptions,sendEvery,duration}' AS INTEGER) AS send_options_send_every_duration,
 jsonb#>>'{sendOptions,sendEvery,intervalId}' AS send_options_send_every_interval_id
 FROM (SELECT id::text || ordinality::text AS id, id AS patron_notice_policy_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.patron_notice_policy, jsonb_array_elements((jsonb->>'loanNotices')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.patron_notice_policy_fee_fine_notices AS
 SELECT
 id AS id,
@@ -2499,6 +2699,7 @@ jsonb#>>'{sendOptions,sendBy,intervalId}' AS send_options_send_by_interval_id,
 CAST(jsonb#>>'{sendOptions,sendEvery,duration}' AS INTEGER) AS send_options_send_every_duration,
 jsonb#>>'{sendOptions,sendEvery,intervalId}' AS send_options_send_every_interval_id
 FROM (SELECT id::text || ordinality::text AS id, id AS patron_notice_policy_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.patron_notice_policy, jsonb_array_elements((jsonb->>'feeFineNotices')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.patron_notice_policy_request_notices AS
 SELECT
 id AS id,
@@ -2516,6 +2717,7 @@ jsonb#>>'{sendOptions,sendBy,intervalId}' AS send_options_send_by_interval_id,
 CAST(jsonb#>>'{sendOptions,sendEvery,duration}' AS INTEGER) AS send_options_send_every_duration,
 jsonb#>>'{sendOptions,sendEvery,intervalId}' AS send_options_send_every_interval_id
 FROM (SELECT id::text || ordinality::text AS id, id AS patron_notice_policy_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.patron_notice_policy, jsonb_array_elements((jsonb->>'requestNotices')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.patron_notice_policies AS
 SELECT
 id AS id,
@@ -2530,6 +2732,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.patron_notice_policy;
+
 CREATE VIEW {{ schema_name }}.payments AS
 SELECT
 id AS id,
@@ -2547,6 +2750,7 @@ CAST(jsonb->>'accountId' AS UUID) AS fee_id,
 CAST(jsonb->>'userId' AS UUID) AS user_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.feefineactions;
+
 CREATE VIEW {{ schema_name }}.payment_methods AS
 SELECT
 id AS id,
@@ -2561,30 +2765,35 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 CAST(jsonb->>'ownerId' AS UUID) AS owner_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.payments;
+
 CREATE VIEW {{ schema_name }}.permission_tags AS
 SELECT
 id AS id,
 permission_id AS permission_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS permission_id, value AS jsonb FROM {{ tenantId }}_mod_permissions.permissions, jsonb_array_elements_text((jsonb->>'tags')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.permission_sub_permissions AS
 SELECT
 id AS id,
 permission_id AS permission_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS permission_id, value AS jsonb FROM {{ tenantId }}_mod_permissions.permissions, jsonb_array_elements_text((jsonb->>'subPermissions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.permission_child_of AS
 SELECT
 id AS id,
 permission_id AS permission_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS permission_id, value AS jsonb FROM {{ tenantId }}_mod_permissions.permissions, jsonb_array_elements_text((jsonb->>'childOf')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.permission_granted_to AS
 SELECT
 id AS id,
 permission_id AS permission_id,
 CAST(jsonb AS UUID) AS permissions_user_id
 FROM (SELECT id::text || ordinality::text AS id, id AS permission_id, value AS jsonb FROM {{ tenantId }}_mod_permissions.permissions, jsonb_array_elements_text((jsonb->>'grantedTo')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.permissions AS
 SELECT
 id AS id,
@@ -2602,12 +2811,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_permissions.permissions;
+
 CREATE VIEW {{ schema_name }}.permissions_user_permissions AS
 SELECT
 id AS id,
 permissions_user_id AS permissions_user_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS permissions_user_id, value AS jsonb FROM {{ tenantId }}_mod_permissions.permissions_users, jsonb_array_elements_text((jsonb->>'permissions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.permissions_users AS
 SELECT
 id AS id,
@@ -2620,6 +2831,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_permissions.permissions_users;
+
 CREATE VIEW {{ schema_name }}.preceding_succeeding_title_identifiers AS
 SELECT
 id AS id,
@@ -2627,6 +2839,7 @@ preceding_succeeding_title_id AS preceding_succeeding_title_id,
 jsonb->>'value' AS value,
 CAST(jsonb->>'identifierTypeId' AS UUID) AS identifier_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS preceding_succeeding_title_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.preceding_succeeding_title, jsonb_array_elements((jsonb->>'identifiers')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.preceding_succeeding_titles AS
 SELECT
 id AS id,
@@ -2642,6 +2855,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.preceding_succeeding_title;
+
 CREATE VIEW {{ schema_name }}.prefixes AS
 SELECT
 id AS id,
@@ -2649,6 +2863,7 @@ jsonb->>'name' AS name,
 jsonb->>'description' AS description,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.prefixes;
+
 CREATE VIEW {{ schema_name }}.proxies AS
 SELECT
 id AS id,
@@ -2667,11 +2882,13 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.proxyfor;
+
 CREATE VIEW {{ schema_name }}.raw_records AS
 SELECT
 id AS id,
 content AS content
 FROM {{ tenantId }}_mod_source_record_storage.raw_records_lb;
+
 CREATE VIEW {{ schema_name }}.receivings AS
 SELECT
 id AS id,
@@ -2688,6 +2905,7 @@ CAST(jsonb->>'supplement' AS BOOLEAN) AS supplement,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'receivedDate') AS received_date,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.pieces;
+
 CREATE VIEW {{ schema_name }}.records AS
 SELECT
 id AS id,
@@ -2706,6 +2924,7 @@ updated_by_user_id AS last_write_user_id,
 updated_date AS last_write_time,
 instance_hrid AS instance_hrid
 FROM {{ tenantId }}_mod_source_record_storage.records_lb;
+
 CREATE VIEW {{ schema_name }}.refund_reasons AS
 SELECT
 id AS id,
@@ -2720,6 +2939,7 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 CAST(jsonb->>'accountId' AS UUID) AS account_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.refunds;
+
 CREATE VIEW {{ schema_name }}.reporting_codes AS
 SELECT
 id AS id,
@@ -2727,6 +2947,7 @@ jsonb->>'code' AS code,
 jsonb->>'description' AS description,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.reporting_code;
+
 CREATE VIEW {{ schema_name }}.request_identifiers AS
 SELECT
 id AS id,
@@ -2734,12 +2955,14 @@ request_id AS request_id,
 jsonb->>'value' AS value,
 CAST(jsonb->>'identifierTypeId' AS UUID) AS identifier_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS request_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.request, jsonb_array_elements((jsonb#>>'{item,identifiers}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.request_tags AS
 SELECT
 id AS id,
 request_id AS request_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS request_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.request, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.requests AS
 SELECT
 id AS id,
@@ -2780,12 +3003,14 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb->>'awaitingPickupRequestClosedDate') AS awaiting_pickup_request_closed_date,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.request;
+
 CREATE VIEW {{ schema_name }}.request_policy_request_types AS
 SELECT
 id AS id,
 request_policy_id AS request_policy_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS request_policy_id, value AS jsonb FROM {{ tenantId }}_mod_circulation_storage.request_policy, jsonb_array_elements_text((jsonb->>'requestTypes')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.request_policies AS
 SELECT
 id AS id,
@@ -2799,6 +3024,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.request_policy;
+
 CREATE VIEW {{ schema_name }}.scheduled_notices AS
 SELECT
 id AS id,
@@ -2822,6 +3048,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.scheduled_notice;
+
 CREATE VIEW {{ schema_name }}.service_point_staff_slips AS
 SELECT
 id AS id,
@@ -2829,6 +3056,7 @@ service_point_id AS service_point_id,
 CAST(jsonb->>'id' AS UUID) AS staff_slip_id,
 CAST(jsonb->>'printByDefault' AS BOOLEAN) AS print_by_default
 FROM (SELECT id::text || ordinality::text AS id, id AS service_point_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.service_point, jsonb_array_elements((jsonb->>'staffSlips')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.service_points AS
 SELECT
 id AS id,
@@ -2848,12 +3076,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.service_point;
+
 CREATE VIEW {{ schema_name }}.service_point_user_service_points AS
 SELECT
 id AS id,
 service_point_user_id AS service_point_user_id,
 CAST(jsonb AS UUID) AS service_point_id
 FROM (SELECT id::text || ordinality::text AS id, id AS service_point_user_id, value AS jsonb FROM {{ tenantId }}_mod_inventory_storage.service_point_user, jsonb_array_elements_text((jsonb->>'servicePointsIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.service_point_users AS
 SELECT
 id AS id,
@@ -2867,6 +3097,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.service_point_user;
+
 CREATE VIEW {{ schema_name }}.snapshots AS
 SELECT
 id AS id,
@@ -2877,6 +3108,7 @@ created_date AS creation_time,
 updated_by_user_id AS last_write_user_id,
 updated_date AS last_write_time
 FROM {{ tenantId }}_mod_source_record_storage.snapshots_lb;
+
 CREATE VIEW {{ schema_name }}.sources AS
 SELECT
 id AS id,
@@ -2890,6 +3122,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.holdings_records_source;
+
 CREATE VIEW {{ schema_name }}.staff_slips AS
 SELECT
 id AS id,
@@ -2905,6 +3138,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.staff_slips;
+
 CREATE VIEW {{ schema_name }}.statistical_codes AS
 SELECT
 id AS id,
@@ -2919,6 +3153,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.statistical_code;
+
 CREATE VIEW {{ schema_name }}.statistical_code_types AS
 SELECT
 id AS id,
@@ -2932,6 +3167,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.statistical_code_type;
+
 CREATE VIEW {{ schema_name }}.suffixes AS
 SELECT
 id AS id,
@@ -2939,6 +3175,7 @@ jsonb->>'name' AS name,
 jsonb->>'description' AS description,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.suffixes;
+
 CREATE VIEW {{ schema_name }}.tags AS
 SELECT
 id AS id,
@@ -2952,12 +3189,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_tags.tags;
+
 CREATE VIEW {{ schema_name }}.template_output_formats AS
 SELECT
 id AS id,
 template_id AS template_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS template_id, value AS jsonb FROM {{ tenantId }}_mod_template_engine.template, jsonb_array_elements_text((jsonb->>'outputFormats')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.templates AS
 SELECT
 id AS id,
@@ -2974,6 +3213,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_template_engine.template;
+
 CREATE VIEW {{ schema_name }}.title_product_ids AS
 SELECT
 id AS id,
@@ -2982,6 +3222,7 @@ jsonb->>'productId' AS product_id,
 CAST(jsonb->>'productIdType' AS UUID) AS product_id_type_id,
 jsonb->>'qualifier' AS qualifier
 FROM (SELECT id::text || ordinality::text AS id, id AS title_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.titles, jsonb_array_elements((jsonb->>'productIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.title_contributors AS
 SELECT
 id AS id,
@@ -2989,6 +3230,7 @@ title_id AS title_id,
 jsonb->>'contributor' AS contributor,
 CAST(jsonb->>'contributorNameTypeId' AS UUID) AS contributor_name_type_id
 FROM (SELECT id::text || ordinality::text AS id, id AS title_id, value AS jsonb FROM {{ tenantId }}_mod_orders_storage.titles, jsonb_array_elements((jsonb->>'contributors')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.titles AS
 SELECT
 id AS id,
@@ -3014,12 +3256,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.titles;
+
 CREATE VIEW {{ schema_name }}.transaction_tags AS
 SELECT
 id AS id,
 transaction_id AS transaction_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS transaction_id, value AS jsonb FROM {{ tenantId }}_mod_finance_storage.transaction, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.transactions AS
 SELECT
 id AS id,
@@ -3055,6 +3299,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_finance_storage.transaction;
+
 CREATE VIEW {{ schema_name }}.transfer_accounts AS
 SELECT
 id AS id,
@@ -3069,6 +3314,7 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 CAST(jsonb->>'ownerId' AS UUID) AS owner_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.transfers;
+
 CREATE VIEW {{ schema_name }}.transfer_criterias AS
 SELECT
 id AS id,
@@ -3078,12 +3324,14 @@ CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value,
 jsonb->>'interval' AS interval,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.transfer_criteria;
+
 CREATE VIEW {{ schema_name }}.user_departments AS
 SELECT
 id AS id,
 user_id AS user_id,
 CAST(jsonb AS UUID) AS department_id
 FROM (SELECT id::text || ordinality::text AS id, id AS user_id, value AS jsonb FROM {{ tenantId }}_mod_users.users, jsonb_array_elements_text((jsonb->>'departments')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.user_addresses AS
 SELECT
 id AS id,
@@ -3098,12 +3346,14 @@ jsonb->>'postalCode' AS postal_code,
 CAST(jsonb->>'addressTypeId' AS UUID) AS address_type_id,
 CAST(jsonb->>'primaryAddress' AS BOOLEAN) AS primary_address
 FROM (SELECT id::text || ordinality::text AS id, id AS user_id, value AS jsonb FROM {{ tenantId }}_mod_users.users, jsonb_array_elements((jsonb#>>'{personal,addresses}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.user_tags AS
 SELECT
 id AS id,
 user_id AS user_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS user_id, value AS jsonb FROM {{ tenantId }}_mod_users.users, jsonb_array_elements_text((jsonb#>>'{tags,tagList}')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.users AS
 SELECT
 id AS id,
@@ -3148,6 +3398,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_users.users;
+
 CREATE VIEW {{ schema_name }}.user_acquisitions_units AS
 SELECT
 id AS id,
@@ -3161,6 +3412,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.acquisitions_unit_membership;
+
 CREATE VIEW {{ schema_name }}.user_request_preferences AS
 SELECT
 id AS id,
@@ -3178,6 +3430,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_circulation_storage.user_request_preference;
+
 CREATE VIEW {{ schema_name }}.user_summary_open_loans AS
 SELECT
 id AS id,
@@ -3188,6 +3441,7 @@ CAST(jsonb->>'recall' AS BOOLEAN) AS recall,
 CAST(jsonb->>'itemLost' AS BOOLEAN) AS item_lost,
 CAST(jsonb->>'itemClaimedReturned' AS BOOLEAN) AS item_claimed_returned
 FROM (SELECT id::text || ordinality::text AS id, id AS user_summary_id, value AS jsonb FROM {{ tenantId }}_mod_patron_blocks.user_summary, jsonb_array_elements((jsonb->>'openLoans')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.user_summary_open_fees_fines AS
 SELECT
 id AS id,
@@ -3197,6 +3451,7 @@ CAST(jsonb->>'feeFineTypeId' AS UUID) AS fee_fine_type_id,
 CAST(jsonb->>'loanId' AS UUID) AS loan_id,
 CAST(jsonb->>'balance' AS DECIMAL(19,2)) AS balance
 FROM (SELECT id::text || ordinality::text AS id, id AS user_summary_id, value AS jsonb FROM {{ tenantId }}_mod_patron_blocks.user_summary, jsonb_array_elements((jsonb->>'openFeesFines')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.user_summaries AS
 SELECT
 id AS id,
@@ -3209,12 +3464,14 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_patron_blocks.user_summary;
+
 CREATE VIEW {{ schema_name }}.voucher_acquisitions_units AS
 SELECT
 id AS id,
 voucher_id AS voucher_id,
 CAST(jsonb AS UUID) AS acquisitions_unit_id
 FROM (SELECT id::text || ordinality::text AS id, id AS voucher_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.vouchers, jsonb_array_elements_text((jsonb->>'acqUnitIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.vouchers AS
 SELECT
 id AS id,
@@ -3241,6 +3498,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.vouchers;
+
 CREATE VIEW {{ schema_name }}.voucher_item_fund_distributions AS
 SELECT
 id AS id,
@@ -3253,12 +3511,14 @@ jsonb->>'distributionType' AS distribution_type,
 CAST(jsonb->>'expenseClassId' AS UUID) AS expense_class_id,
 CAST(jsonb->>'value' AS DECIMAL(19,2)) AS value
 FROM (SELECT id::text || ordinality::text AS id, id AS voucher_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.voucher_lines, jsonb_array_elements((jsonb->>'fundDistributions')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.voucher_item_source_ids AS
 SELECT
 id AS id,
 voucher_item_id AS voucher_item_id,
 CAST(jsonb AS VARCHAR(1024)) AS content
 FROM (SELECT id::text || ordinality::text AS id, id AS voucher_item_id, value AS jsonb FROM {{ tenantId }}_mod_invoice_storage.voucher_lines, jsonb_array_elements_text((jsonb->>'sourceIds')::jsonb) WITH ORDINALITY) a;
+
 CREATE VIEW {{ schema_name }}.voucher_items AS
 SELECT
 id AS id,
@@ -3274,6 +3534,7 @@ CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_invoice_storage.voucher_lines;
+
 CREATE VIEW {{ schema_name }}.waive_reasons AS
 SELECT
 id AS id,
@@ -3288,6 +3549,7 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 CAST(jsonb->>'accountId' AS UUID) AS account_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.waives;
+
 CREATE VIEW {{ schema_name }}.addresses AS
 SELECT 
 c.id, 
@@ -3300,6 +3562,7 @@ c.updated_date,
 c.updated_by_user_id   
 FROM {{ schema_name }}.configurations c
 WHERE c.config_name = 'tenant.addresses';
+
 CREATE VIEW {{ schema_name }}.printers AS
 SELECT 
 c.id, 
@@ -3316,6 +3579,7 @@ c.updated_date,
 c.updated_by_user_id   
 FROM {{ schema_name }}.configurations c
 WHERE c.module = 'uc' AND c.config_name = 'printers';
+
 CREATE VIEW {{ schema_name }}.settings AS
 SELECT 
 c.id, 
@@ -3331,6 +3595,7 @@ c.updated_date,
 c.updated_by_user_id   
 FROM {{ schema_name }}.configurations c
 WHERE c.module = 'uc' AND c.config_name = 'settings';
+
 CREATE VIEW {{ schema_name }}.location_settings AS
 SELECT 
 c.id, 
@@ -3343,16 +3608,20 @@ c.updated_date,
 c.updated_by_user_id   
 FROM {{ schema_name }}.configurations c
 WHERE c.module = 'uc' AND c.config_name = 'location_settings';
+
 CREATE TABLE {{ schema_name }}.countries (
     alpha2_code VARCHAR(2) NOT NULL,
     alpha3_code VARCHAR(3) NOT NULL,
     name VARCHAR(128) NOT NULL,
     PRIMARY KEY(alpha2_code)
 );
+
 INSERT INTO {{ schema_name }}.countries VALUES ('AD', 'AND', 'Andorra'), ('AE', 'ARE', 'United Arab Emirates'), ('AF', 'AFG', 'Afghanistan'), ('AG', 'ATG', 'Antigua and Barbuda'), ('AI', 'AIA', 'Anguilla'), ('AL', 'ALB', 'Albania'), ('AM', 'ARM', 'Armenia'), ('AN', 'ANT', 'Netherlands Antilles'), ('AO', 'AGO', 'Angola'), ('AQ', 'ATA', 'Antarctica'), ('AR', 'ARG', 'Argentina'), ('AS', 'ASM', 'American Samoa'), ('AT', 'AUT', 'Austria'), ('AU', 'AUS', 'Australia'), ('AW', 'ABW', 'Aruba'), ('AX', 'ALA', 'Åland Islands'), ('AZ', 'AZE', 'Azerbaijan'), ('BA', 'BIH', 'Bosnia and Herzegovina'), ('BB', 'BRB', 'Barbados'), ('BD', 'BGD', 'Bangladesh'), ('BE', 'BEL', 'Belgium'), ('BF', 'BFA', 'Burkina Faso'), ('BG', 'BGR', 'Bulgaria'), ('BH', 'BHR', 'Bahrain'), ('BI', 'BDI', 'Burundi'), ('BJ', 'BEN', 'Benin'), ('BL', 'BLM', 'Saint BarthÃ©lemy'), ('BM', 'BMU', 'Bermuda'), ('BN', 'BRN', 'Brunei Darussalam'), ('BO', 'BOL', 'Bolivia, Plurinational State Of'), ('BR', 'BRA', 'Brazil'), ('BS', 'BHS', 'Bahamas'), ('BT', 'BTN', 'Bhutan'), ('BV', 'BVT', 'Bouvet Island'), ('BW', 'BWA', 'Botswana'), ('BY', 'BLR', 'Belarus'), ('BZ', 'BLZ', 'Belize'), ('CA', 'CAN', 'Canada'), ('CC', 'CCK', 'Cocos (Keeling), Islands'), ('CD', 'COD', 'Congo, The Democratic Republic Of The'), ('CF', 'CAF', 'Central African Republic'), ('CG', 'COG', 'Congo'), ('CH', 'CHE', 'Switzerland'), ('CI', 'CIV', 'CÃ´te D''Ivoire'), ('CK', 'COK', 'Cook Islands'), ('CL', 'CHL', 'Chile'), ('CM', 'CMR', 'Cameroon'), ('CN', 'CHN', 'China'), ('CO', 'COL', 'Colombia'), ('CR', 'CRI', 'Costa Rica'), ('CU', 'CUB', 'Cuba'), ('CV', 'CPV', 'Cape Verde'), ('CX', 'CXR', 'Christmas Island'), ('CY', 'CYP', 'Cyprus'), ('CZ', 'CZE', 'Czech Republic'), ('DE', 'DEU', 'Germany'), ('DJ', 'DJI', 'Djibouti'), ('DK', 'DNK', 'Denmark'), ('DM', 'DMA', 'Dominica'), ('DO', 'DOM', 'Dominican Republic'), ('DZ', 'DZA', 'Algeria'), ('EC', 'ECU', 'Ecuador'), ('EE', 'EST', 'Estonia'), ('EG', 'EGY', 'Egypt'), ('EH', 'ESH', 'Western Sahara'), ('ER', 'ERI', 'Eritrea'), ('ES', 'ESP', 'Spain'), ('ET', 'ETH', 'Ethiopia'), ('FI', 'FIN', 'Finland'), ('FJ', 'FJI', 'Fiji'), ('FK', 'FLK', 'Falkland Islands (Malvinas),'), ('FM', 'FSM', 'Micronesia, Federated States Of'), ('FO', 'FRO', 'Faroe Islands'), ('FR', 'FRA', 'France'), ('GA', 'GAB', 'Gabon'), ('GB', 'GBR', 'United Kingdom'), ('GD', 'GRD', 'Grenada'), ('GE', 'GEO', 'Georgia'), ('GF', 'GUF', 'French Guiana'), ('GG', 'GGY', 'Guernsey'), ('GH', 'GHA', 'Ghana'), ('GI', 'GIB', 'Gibraltar'), ('GL', 'GRL', 'Greenland'), ('GM', 'GMB', 'Gambia'), ('GN', 'GIN', 'Guinea'), ('GP', 'GLP', 'Guadeloupe'), ('GQ', 'GNQ', 'Equatorial Guinea'), ('GR', 'GRC', 'Greece'), ('GS', 'SGS', 'South Georgia and South Sandwich Islands'), ('GT', 'GTM', 'Guatemala'), ('GU', 'GUM', 'Guam'), ('GW', 'GNB', 'Guinea-Bissau'), ('GY', 'GUY', 'Guyana'), ('HK', 'HKG', 'Hong Kong'), ('HM', 'HMD', 'Heard and McDonald Islands'), ('HN', 'HND', 'Honduras'), ('HR', 'HRV', 'Croatia'), ('HT', 'HTI', 'Haiti'), ('HU', 'HUN', 'Hungary'), ('ID', 'IDN', 'Indonesia'), ('IE', 'IRL', 'Ireland'), ('IL', 'ISR', 'Israel'), ('IM', 'IMN', 'Isle of Man'), ('IN', 'IND', 'India'), ('IO', 'IOT', 'British Indian Ocean Territory'), ('IQ', 'IRQ', 'Iraq'), ('IR', 'IRN', 'Iran, Islamic Republic Of'), ('IS', 'ISL', 'Iceland'), ('IT', 'ITA', 'Italy'), ('JE', 'JEY', 'Jersey'), ('JM', 'JAM', 'Jamaica'), ('JO', 'JOR', 'Jordan'), ('JP', 'JPN', 'Japan'), ('KE', 'KEN', 'Kenya'), ('KG', 'KGZ', 'Kyrgyzstan'), ('KH', 'KHM', 'Cambodia'), ('KI', 'KIR', 'Kiribati'), ('KM', 'COM', 'Comoros'), ('KN', 'KNA', 'Saint Kitts And Nevis'), ('KP', 'PRK', 'Korea, Democratic People''s Republic Of'), ('KR', 'KOR', 'Korea, Republic of'), ('KW', 'KWT', 'Kuwait'), ('KY', 'CYM', 'Cayman Islands'), ('KZ', 'KAZ', 'Kazakhstan'), ('LA', 'LAO', 'Lao People''s Democratic Republic'), ('LB', 'LBN', 'Lebanon'), ('LC', 'LCA', 'Saint Lucia'), ('LI', 'LIE', 'Liechtenstein'), ('LK', 'LKA', 'Sri Lanka'), ('LR', 'LBR', 'Liberia'), ('LS', 'LSO', 'Lesotho'), ('LT', 'LTU', 'Lithuania'), ('LU', 'LUX', 'Luxembourg'), ('LV', 'LVA', 'Latvia'), ('LY', 'LBY', 'Libyan Arab Jamahiriya'), ('MA', 'MAR', 'Morocco'), ('MC', 'MCO', 'Monaco'), ('MD', 'MDA', 'Moldova, Republic of'), ('ME', 'MNE', 'Montenegro'), ('MF', 'MAF', 'Saint Martin'), ('MG', 'MDG', 'Madagascar'), ('MH', 'MHL', 'Marshall Islands'), ('MK', 'MKD', 'Macedonia, the Fmr. Yugoslav Republic Of'), ('ML', 'MLI', 'Mali'), ('MM', 'MMR', 'Myanmar'), ('MN', 'MNG', 'Mongolia'), ('MO', 'MAC', 'Macao'), ('MP', 'MNP', 'Northern Mariana Islands'), ('MQ', 'MTQ', 'Martinique'), ('MR', 'MRT', 'Mauritania'), ('MS', 'MSR', 'Montserrat'), ('MT', 'MLT', 'Malta'), ('MU', 'MUS', 'Mauritius'), ('MV', 'MDV', 'Maldives'), ('MW', 'MWI', 'Malawi'), ('MX', 'MEX', 'Mexico'), ('MY', 'MYS', 'Malaysia'), ('MZ', 'MOZ', 'Mozambique'), ('NA', 'NAM', 'Namibia'), ('NC', 'NCL', 'New Caledonia'), ('NE', 'NER', 'Niger'), ('NF', 'NFK', 'Norfolk Island'), ('NG', 'NGA', 'Nigeria'), ('NI', 'NIC', 'Nicaragua'), ('NL', 'NLD', 'Netherlands'), ('NO', 'NOR', 'Norway'), ('NP', 'NPL', 'Nepal'), ('NR', 'NRU', 'Nauru'), ('NU', 'NIU', 'Niue'), ('NZ', 'NZL', 'New Zealand'), ('OM', 'OMN', 'Oman'), ('PA', 'PAN', 'Panama'), ('PE', 'PER', 'Peru'), ('PF', 'PYF', 'French Polynesia'), ('PG', 'PNG', 'Papua New Guinea'), ('PH', 'PHL', 'Philippines'), ('PK', 'PAK', 'Pakistan'), ('PL', 'POL', 'Poland'), ('PM', 'SPM', 'Saint Pierre And Miquelon'), ('PN', 'PCN', 'Pitcairn'), ('PR', 'PRI', 'Puerto Rico'), ('PS', 'PSE', 'Palestinian Territory, Occupied'), ('PT', 'PRT', 'Portugal'), ('PW', 'PLW', 'Palau'), ('PY', 'PRY', 'Paraguay'), ('QA', 'QAT', 'Qatar'), ('RE', 'REU', 'RÃ©union'), ('RO', 'ROU', 'Romania'), ('RS', 'SRB', 'Serbia'), ('RU', 'RUS', 'Russian Federation'), ('RW', 'RWA', 'Rwanda'), ('SA', 'SAU', 'Saudi Arabia'), ('SB', 'SLB', 'Solomon Islands'), ('SC', 'SYC', 'Seychelles'), ('SD', 'SDN', 'Sudan'), ('SE', 'SWE', 'Sweden'), ('SG', 'SGP', 'Singapore'), ('SH', 'SHN', 'St. Helena, Ascension, Tristan Da Cunha'), ('SI', 'SVN', 'Slovenia'), ('SJ', 'SJM', 'Svalbard And Jan Mayen'), ('SK', 'SVK', 'Slovakia'), ('SL', 'SLE', 'Sierra Leone'), ('SM', 'SMR', 'San Marino'), ('SN', 'SEN', 'Senegal'), ('SO', 'SOM', 'Somalia'), ('SR', 'SUR', 'Suriname'), ('ST', 'STP', 'Sao Tome and Principe'), ('SV', 'SLV', 'El Salvador'), ('SY', 'SYR', 'Syrian Arab Republic'), ('SZ', 'SWZ', 'Swaziland'), ('TC', 'TCA', 'Turks and Caicos Islands'), ('TD', 'TCD', 'Chad'), ('TF', 'ATF', 'French Southern Territories'), ('TG', 'TGO', 'Togo'), ('TH', 'THA', 'Thailand'), ('TJ', 'TJK', 'Tajikistan'), ('TK', 'TKL', 'Tokelau'), ('TL', 'TLS', 'Timor-Leste'), ('TM', 'TKM', 'Turkmenistan'), ('TN', 'TUN', 'Tunisia'), ('TO', 'TON', 'Tonga'), ('TR', 'TUR', 'Turkey'), ('TT', 'TTO', 'Trinidad and Tobago'), ('TV', 'TUV', 'Tuvalu'), ('TW', 'TWN', 'Taiwan, Province Of China'), ('TZ', 'TZA', 'Tanzania, United Republic of'), ('UA', 'UKR', 'Ukraine'), ('UG', 'UGA', 'Uganda'), ('UM', 'UMI', 'United States Minor Outlying Islands'), ('US', 'USA', 'United States'), ('UY', 'URY', 'Uruguay'), ('UZ', 'UZB', 'Uzbekistan'), ('VA', 'VAT', 'Holy See (Vatican City State),'), ('VC', 'VCT', 'Saint Vincent And The Grenedines'), ('VE', 'VEN', 'Venezuela, Bolivarian Republic of'), ('VG', 'VGB', 'Virgin Islands, British'), ('VI', 'VIR', 'Virgin Islands, U.S.'), ('VN', 'VNM', 'Viet Nam'), ('VU', 'VUT', 'Vanuatu'), ('WF', 'WLF', 'Wallis and Futuna'), ('WS', 'WSM', 'Samoa'), ('YE', 'YEM', 'Yemen'), ('YT', 'MYT', 'Mayotte'), ('ZA', 'ZAF', 'South Africa'), ('ZM', 'ZMB', 'Zambia'), ('ZW', 'ZWE', 'Zimbabwe'), ('ZZ', 'ZZZ', 'Other Countries');
+
 CREATE TABLE {{ schema_name }}.contact_types (
     id VARCHAR(3) NOT NULL,
     name VARCHAR(128) NOT NULL,
     PRIMARY KEY(id)
 );
+
 INSERT INTO {{ schema_name }}.contact_types VALUES ('001', 'Mail'),  ('002', 'Email'),  ('003', 'Text message');
