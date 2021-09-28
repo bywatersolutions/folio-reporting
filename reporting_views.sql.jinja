@@ -3535,6 +3535,162 @@ CAST(jsonb->>'accountId' AS UUID) AS account_id,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_feesfines.waives;
 
+CREATE VIEW {{ schema_name }}.coursereserves_copyrightstatuses AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_copyrightstates;
+
+CREATE VIEW {{ schema_name }}.coursereserves_courselistings AS
+SELECT
+jsonb->>'id' AS id,
+jsonb->>'registrarId' AS registrarId,
+jsonb->>'externalId' AS externalId,
+CAST(jsonb->>'servicepointId' AS UUID) AS servicePointId,
+CAST(jsonb->>'locationId' AS UUID) AS locationId,
+CAST(jsonb->>'termId' AS UUID) AS termId,
+CAST(jsonb->>'courseTypeId' AS UUID) AS courseTypeId,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_courselistings;
+
+CREATE VIEW {{ schema_name }}.coursereserves_courses AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+CAST(jsonb->>'departmentId' AS UUID) as departmentId,
+CAST(jsonb->>'courseListingId AS UUID) as courseListingId,
+jsonb->>'courseNumber' AS courseNumber,
+jsonb->>'sectionName' AS sectionName,
+CAST(jsonb->>'numberOfStudents' AS integer) AS numberOfStudents,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_courses;
+
+CREATE VIEW {{ schema_name }}.coursereserves_coursetypes AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_coursetypes;
+
+CREATE VIEW {{ schema_name }}.coursereserves_departments AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_departments;
+
+CREATE VIEW {{ schema_name }}.coursereserves_instructors AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'barcode' AS barcode,
+CAST(jsonb->>'userId' AS UUID) as userId,
+jsonb->>'patronGroup' AS patronGroup,
+CAST(jsonb->>'courseListingId' AS UUID) as courseListingId,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_copyrightstates;
+
+CREATE VIEW {{ schema_name }}.coursereserves_processingstatuses AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_processingstates;
+
+CREATE VIEW {{ schema_name }}.coursereserves_reserves AS
+SELECT
+id AS id,
+CAST(jsonb->>'courseListingId' AS UUID) AS courseListingId,
+CAST(jsonb->>'itemId' AS UUID) AS itemId,
+CAST(jsonb->>'processingStatusId' AS UUID) AS processingStatusId,
+TO_DATE(SUBSTRING(jsonb->>'startDate', 1, 10), 'YYYY-MM-DD') AS startDate,
+TO_DATE(SUBSTRING(jsonb->>'endDate', 1, 10), 'YYYY-MM-DD') as endDate,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_reserves;
+
+CREATE VIEW {{ schema_name }}.coursereserves_roles AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+jsonb->>'description' AS description,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_roles;
+
+CREATE VIEW {{ schema_name }}.coursereserves_terms AS
+SELECT
+id AS id,
+jsonb->>'name' AS name,
+TO_DATE(SUBSTRING(jsonb->>'startDate', 1, 10), 'YYYY-MM-DD') AS startDate,
+TO_DATE(SUBSTRING(jsonb->>'endDate', 1, 10), 'YYYY-MM-DD') as endDate,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb_pretty(jsonb) AS content
+FROM {{ tenantId }}_mod_courses.coursereserves_terms;
+
 CREATE VIEW {{ schema_name }}.addresses AS
 SELECT 
 c.id, 
