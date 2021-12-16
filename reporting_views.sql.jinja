@@ -3629,7 +3629,7 @@ jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
 jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
-FROM {{ tenantId }}_mod_courses.coursereserves_copyrightstates;
+FROM {{ tenantId }}_mod_courses.coursereserves_instructors;
 
 CREATE VIEW {{ schema_name }}.coursereserves_processingstatuses AS
 SELECT
