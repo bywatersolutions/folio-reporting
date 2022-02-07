@@ -242,6 +242,19 @@ jsonb_pretty(jsonb) AS content,
 conditionid AS conditionid
 FROM {{ tenantId }}_mod_patron_blocks.patron_block_limits;
 
+CREATE VIEW {{ schema_name }}.bound_with_parts AS
+SELECT
+id AS id,
+itemid AS item_id,
+holdingsrecordid AS holdings_record_id
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
+CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
+jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
+{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
+CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+FROM {{ tenantId }}_mod_inventory_storage.bound_with_part;
+
 CREATE VIEW {{ schema_name }}.budget_acquisitions_units AS
 SELECT
 id AS id,
