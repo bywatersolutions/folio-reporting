@@ -3176,20 +3176,6 @@ jsonb->>'description' AS description,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_orders_storage.suffixes;
 
-CREATE VIEW {{ schema_name }}.tags AS
-SELECT
-id AS id,
-jsonb->>'label' AS label,
-jsonb->>'description' AS description,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
-CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
-jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
-CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
-jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
-jsonb_pretty(jsonb) AS content
-FROM {{ tenantId }}_mod_tags.tags;
-
 CREATE VIEW {{ schema_name }}.template_output_formats AS
 SELECT
 id AS id,
