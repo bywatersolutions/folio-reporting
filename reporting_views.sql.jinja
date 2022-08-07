@@ -246,13 +246,13 @@ CREATE VIEW {{ schema_name }}.bound_with_parts AS
 SELECT
 id AS id,
 itemid AS item_id,
-holdingsrecordid AS holdings_record_id
+holdingsrecordid AS holdings_record_id,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
 CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
 jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
 {{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
 CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
-jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
+jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username
 FROM {{ tenantId }}_mod_inventory_storage.bound_with_part;
 
 CREATE VIEW {{ schema_name }}.budget_acquisitions_units AS
@@ -2081,52 +2081,41 @@ jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
 jsonb_pretty(jsonb) AS content
 FROM {{ tenantId }}_mod_inventory_storage.nature_of_content_term;
 
+CREATE VIEW {{ schema_name }}.notes_to_links AS
+SELECT
+note_id AS note_id,
+link_id AS link_id
+FROM {{ tenantId }}_mod_notes.note_link;
+
 CREATE VIEW {{ schema_name }}.note_links AS
 SELECT
 id AS id,
-note_id AS note_id,
-jsonb->>'id' AS id2,
-jsonb->>'type' AS type
-FROM (SELECT id::text || ordinality::text AS id, id AS note_id, value AS jsonb FROM {{ tenantId }}_mod_notes.note_data, jsonb_array_elements((jsonb->>'links')::jsonb) WITH ORDINALITY) a;
+object_id AS object_id,
+object_type AS object_type
+FROM {{ tenantId }}_mod_notes.link;
 
 CREATE VIEW {{ schema_name }}.notes2 AS
 SELECT
 id AS id,
-CAST(jsonb->>'typeId' AS UUID) AS type_id,
-jsonb->>'type' AS type,
-jsonb->>'domain' AS domain,
-CAST(jsonb->>'title' AS VARCHAR(255)) AS title,
-jsonb->>'content' AS content2,
-jsonb->>'status' AS status,
-jsonb#>>'{creator,lastName}' AS creator_last_name,
-jsonb#>>'{creator,firstName}' AS creator_first_name,
-jsonb#>>'{creator,middleName}' AS creator_middle_name,
-jsonb#>>'{updater,lastName}' AS updater_last_name,
-jsonb#>>'{updater,firstName}' AS updater_first_name,
-jsonb#>>'{updater,middleName}' AS updater_middle_name,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
-CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
-jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
-CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
-jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
-jsonb_pretty(jsonb) AS content,
-temporary_type_id AS temporary_type_id
-FROM {{ tenantId }}_mod_notes.note_data;
+type_id AS type_id,
+domain AS domain,
+title AS title,
+content AS content,
+created_date AS created_date,
+created_by AS created_by,
+updated_date AS updated_date,
+updated_by AS updated_by
+FROM {{ tenantId }}_mod_notes.note;
 
 CREATE VIEW {{ schema_name }}.note_types AS
 SELECT
 id AS id,
-jsonb->>'name' AS name,
-CAST(jsonb#>>'{usage,noteTotal}' AS INTEGER) AS usage_note_total,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,createdDate}') AS created_date,
-CAST(jsonb#>>'{metadata,createdByUserId}' AS UUID) AS created_by_user_id,
-jsonb#>>'{metadata,createdByUsername}' AS created_by_username,
-{{ schema_name }}.TIMESTAMP_CAST(jsonb#>>'{metadata,updatedDate}') AS updated_date,
-CAST(jsonb#>>'{metadata,updatedByUserId}' AS UUID) AS updated_by_user_id,
-jsonb#>>'{metadata,updatedByUsername}' AS updated_by_username,
-jsonb_pretty(jsonb) AS content
-FROM {{ tenantId }}_mod_notes.note_type;
+name AS name,
+created_date AS created_date,
+created_by AS created_by,
+updated_date AS updated_date,
+updated_by AS updated_by
+FROM {{ tenantId }}_mod_notes.type;
 
 CREATE VIEW {{ schema_name }}.order_notes AS
 SELECT
